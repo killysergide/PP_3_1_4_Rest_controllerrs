@@ -50,6 +50,8 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void save(User user) {
+        // Хешируем пароль перед сохранением
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
@@ -60,6 +62,7 @@ public class UserService implements UserDetailsService {
 
         // Обновляем пароль только если он был изменен
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isEmpty()) {
+            // Хешируем новый пароль
             existingUser.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
