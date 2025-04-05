@@ -40,10 +40,11 @@ public class AdminController {
     public String createUser(@ModelAttribute("user") User user,
                              @RequestParam(value = "selectedRoles", required = false) List<Integer> selectedRoles) {
         if (selectedRoles != null) {
-            List<Role> roles = selectedRoles.stream()
+            Set<Role> roles = selectedRoles.stream()
                     .map(roleId -> userService.getRoleById(roleId))
-                    .collect(Collectors.toList());
-            user.setRoles((Set<Role>) roles);
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
         }
         userService.save(user);
         return "redirect:/admin";
@@ -52,14 +53,22 @@ public class AdminController {
     @GetMapping("/edit/{id}")
     public String editUserForm(@PathVariable int id, Model model) {
         User user = userService.getUserById(id);
-        List<Role> allRoles = userService.getAllRoles();
         model.addAttribute("user", user);
-        model.addAttribute("allRoles", allRoles);
+        model.addAttribute("allRoles", userService.getAllRoles());
         return "edit-user";
     }
 
     @PostMapping("/edit/{id}")
-    public String updateUser(@PathVariable int id, @ModelAttribute("user") User user) {
+    public String updateUser(@PathVariable int id,
+                             @ModelAttribute("user") User user,
+                             @RequestParam(value = "selectedRoles", required = false) List<Integer> selectedRoles) {
+        if (selectedRoles != null) {
+            Set<Role> roles = selectedRoles.stream()
+                    .map(roleId -> userService.getRoleById(roleId))
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
+        }
         userService.update(id, user);
         return "redirect:/admin";
     }
