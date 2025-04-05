@@ -1,7 +1,6 @@
 package ru.kata.spring.boot_security.demo.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,14 +26,13 @@ public class MainController {
 
     @GetMapping("/user")
     public String userPage(Principal principal, Model model) {
-        // Получаем текущего пользователя из базы по имени
         User user = userService.findByUsername(principal.getName());
         model.addAttribute("user", user);
         return "user";
     }
 
-    @GetMapping("/admin")
-    public String adminPage() {
-        return "admin";
-    }
+//    @GetMapping("/admin")
+//    public String adminPage() {
+//        return "admin";
+//    }
 }
