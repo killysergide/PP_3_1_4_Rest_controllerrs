@@ -12,6 +12,7 @@ import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
 import ru.kata.spring.boot_security.demo.services.UserService;
 
+import javax.persistence.EntityNotFoundException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Objects;
@@ -30,18 +31,13 @@ public class AdminController {
 
     @GetMapping
     public String adminPage(Model model, Principal principal,
-                            @RequestParam(value = "showForm", defaultValue = "false") boolean showForm,
-                            @RequestParam(value = "editId", required = false) Integer editId) {
+                            @RequestParam(value = "showForm", defaultValue = "false") boolean showForm) {
         User user = userService.findByUsername(principal.getName());
         model.addAttribute("currentUser", user);
         model.addAttribute("users", userService.getAllUsers());
         model.addAttribute("allRoles", userService.getAllRoles());
         model.addAttribute("newUser", new User());
         model.addAttribute("showForm", showForm);
-
-        // Добавляем пустого пользователя для формы, если не передан editId
-        model.addAttribute("editUser", editId != null ?
-                userService.getUserById(editId) : new User());
 
         return "admin";
     }
@@ -60,18 +56,17 @@ public class AdminController {
         return "redirect:/admin";
     }
 
-//    @GetMapping("/edit/{id}")
-//    public String editUserForm(@PathVariable int id, Model model) {
-//        User user = userService.getUserById(id);
-//        model.addAttribute("user", user);
-//        model.addAttribute("allRoles", userService.getAllRoles());
-//        return "edit-user";
-//    }
-
     @PostMapping("/edit/{id}")
     public String updateUser(@PathVariable int id,
                              @ModelAttribute("editUser") User user,
                              @RequestParam(value = "selectedRoles", required = false) List<Integer> selectedRoles) {
+        System.out.println("Editing user with ID: " + id);
+        System.out.println("User object from form: " + user);
+
+        if (user.getId() != id) {
+            user.setId(id);
+        }
+
         if (selectedRoles != null) {
             Set<Role> roles = selectedRoles.stream()
                     .map(roleId -> userService.getRoleById(roleId))
@@ -79,8 +74,41 @@ public class AdminController {
                     .collect(Collectors.toSet());
             user.setRoles(roles);
         }
+
         userService.update(id, user);
         return "redirect:/admin";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String editUserForm(@PathVariable int id, Model model, Principal principal) {
+        User currentUser = userService.findByUsername(principal.getName());
+        model.addAttribute("currentUser", currentUser);
+        model.addAttribute("editUser", userService.getUserById(id));
+        model.addAttribute("allRoles", userService.getAllRoles());
+        return "admin";
+    }
+
+    @GetMapping("/edit-form/{id}")
+    public String getEditForm(@PathVariable int id, Model model) {
+        User user = userService.getUserById(id);
+        if (user == null) {
+            throw new EntityNotFoundException("User not found with id: " + id);
+        }
+
+        model.addAttribute("user", user);
+        model.addAttribute("allRoles", userService.getAllRoles());
+        return "edit-user-form :: editForm";
+    }
+
+    @GetMapping("/delete-form/{id}")
+    public String getDeleteForm(@PathVariable int id, Model model) {
+        User user = userService.getUserById(id);
+        if (user == null) {
+            throw new EntityNotFoundException("User not found with id: " + id);
+        }
+
+        model.addAttribute("user", user);
+        return "edit-user-form :: deleteForm";
     }
 
 

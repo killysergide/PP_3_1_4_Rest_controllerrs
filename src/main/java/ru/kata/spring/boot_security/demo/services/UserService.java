@@ -14,6 +14,7 @@ import ru.kata.spring.boot_security.demo.models.User;
 import ru.kata.spring.boot_security.demo.repositories.RoleRepository;
 import ru.kata.spring.boot_security.demo.repositories.UserRepository;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,7 +58,8 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public void update(int id, User updatedUser) {
-        User existingUser = userRepository.findById(id).orElseThrow();
+        User existingUser = userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
         existingUser.setUsername(updatedUser.getUsername());
 
         // Обновляем пароль только если он был изменен

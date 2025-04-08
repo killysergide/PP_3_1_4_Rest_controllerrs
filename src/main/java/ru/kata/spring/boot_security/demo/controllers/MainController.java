@@ -28,6 +28,7 @@ public class MainController {
     public String userPage(Principal principal, Model model) {
         User user = userService.findByUsername(principal.getName());
         model.addAttribute("user", user);
+        model.addAttribute("currentUser", user);
         return "user";
     }
 }
