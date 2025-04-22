@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import ru.kata.spring.boot_security.demo.services.UserService;
 
 @Configuration
@@ -31,18 +32,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .authorizeRequests()
-//                .antMatchers("/user/**").hasAnyRole("USER", "ADMIN")
-//                .antMatchers("/admin/**").hasRole("ADMIN")
-                .antMatchers("/", "/index").permitAll()
-//                .anyRequest().authenticated()
+                .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .and()
-                .formLogin().successHandler(successUserHandler)
+                .authorizeRequests()
+                .antMatchers("/login", "/api/**").permitAll() // Разрешаем доступ к API и странице логина
+                .antMatchers("/", "/index.html").authenticated() // Требуем аутентификации для главной страницы
+                .anyRequest().authenticated() // Все остальные запросы требуют аутентификации
+                .and()
+                .formLogin()
+                .successHandler(successUserHandler)
                 .permitAll()
                 .and()
                 .logout()
-                .logoutSuccessUrl("/");
+                .logoutSuccessUrl("/login");
     }
 
     @Bean

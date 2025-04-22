@@ -3,16 +3,16 @@ package ru.kata.spring.boot_security.demo.dto;
 import java.util.Set;
 
 public class UserResponseDTO {
-    private Integer id;
+    private int id;
     private String username;
     private Set<String> roles;
 
     // Геттеры и сеттеры
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 

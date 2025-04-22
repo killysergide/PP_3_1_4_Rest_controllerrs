@@ -5,9 +5,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.dto.UserRequestDTO;
 import ru.kata.spring.boot_security.demo.dto.UserResponseDTO;
+import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
 import ru.kata.spring.boot_security.demo.services.UserService;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,12 +60,23 @@ public class RestUserController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/current")
+    public ResponseEntity<UserResponseDTO> getCurrentUser(Principal principal) {
+        User user = userService.findByUsername(principal.getName());
+        return ResponseEntity.ok(convertToResponseDTO(user));
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<List<Role>> getAllRoles() {
+        return ResponseEntity.ok(userService.getAllRoles());
+    }
+
     private UserResponseDTO convertToResponseDTO(User user) {
         UserResponseDTO responseDTO = new UserResponseDTO();
         responseDTO.setId(user.getId());
         responseDTO.setUsername(user.getUsername());
         responseDTO.setRoles(user.getRoles().stream()
-                .map(role -> role.getName())
+                .map(role -> role.getName().replace("ROLE_", "")) // Удаляем префикс ROLE_
                 .collect(Collectors.toSet()));
         return responseDTO;
     }
